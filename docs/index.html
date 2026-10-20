@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="TT4D: a 140+ hour table tennis dataset with 3D ball trajectories, ball spin, time segmentation, camera calibration and 3D human meshes, reconstructed from monocular broadcast video with the Lift-First Pipeline.">
+  <meta name="keywords" content="TT4D, table tennis, 4D reconstruction, ball spin, trajectory lifting, sports analytics, robot learning">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TT4D: Table Tennis 4D Reconstruction From Monocular Videos</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+
+  <style>
+    .stat-table td, .stat-table th { text-align: center; }
+    .stat-table th:first-child, .stat-table td:first-child { text-align: left; }
+    .pipeline-steps li { margin-bottom: 0.5em; }
+    .teaser-figure { width: 100%; height: auto; }
+    .link-block .button[disabled] { opacity: 0.6; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">TT4D: A Pipeline and Dataset for Table Tennis 4D Reconstruction From Monocular Videos</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">Nima Rahmanian<sup>1*</sup>,</span>
+            <span class="author-block">Daniel Kienzle<sup>2*</sup>,</span>
+            <span class="author-block">Thomas Gossard<sup>3*</sup>,</span>
+            <span class="author-block">Dvij Kalaria<sup>1</sup>,</span>
+            <span class="author-block">Rainer Lienhart<sup>2</sup>,</span>
+            <span class="author-block">S. Shankar Sastry<sup>1</sup></span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>University of California, Berkeley,</span>
+            <span class="author-block"><sup>2</sup>Universität Augsburg,</span>
+            <span class="author-block"><sup>3</sup>University of Tübingen</span>
+          </div>
+          <div class="is-size-6 publication-authors">
+            <span class="author-block"><sup>*</sup>Equal contribution</span>
+          </div>
+          <div class="is-size-5 publication-authors" style="margin-top: 0.5em;">
+            <span class="author-block"><b>ACM Multimedia 2026</b>, Rio de Janeiro</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/pdf/2605.01234"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2605.01234"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/Nimsi123/tt4d"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code (coming soon)</span>
+                  </a>
+              </span>
+              <!-- Dataset Link. -->
+              <span class="link-block">
+                <a class="external-link button is-normal is-rounded is-dark" disabled
+                   title="The TT4D dataset will be released soon.">
+                  <span class="icon">
+                      <i class="fas fa-database"></i>
+                  </span>
+                  <span>Dataset (coming soon)</span>
+                  </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <img src="./static/images/teaser.png" class="teaser-figure"
+           alt="4D reconstructions of two broadcast table tennis rallies: camera, 3D ball trajectory and 3D human meshes over time.">
+      <h2 class="subtitle has-text-centered">
+        <span class="dnerf">TT4D</span> recovers camera parameters, 3D ball positions, ball spin,
+        and 3D human meshes over time from general-view broadcast videos, yielding a
+        140+ hour dataset of reconstructed competitive gameplay.
+      </h2>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            We present TT4D, a large-scale, high-fidelity table tennis dataset. It provides
+            140+ hours of reconstructed singles and doubles gameplay from monocular broadcast
+            videos, featuring annotations like high-quality camera calibrations, precise 3D ball
+            positions, ball spin, time segmentation, and 3D human meshes over time. This rich data
+            provides a new foundation for virtual replay, in-depth player analysis, and robot
+            learning.
+          </p>
+          <p>
+            The dataset's combination of scale and precision is achieved through a novel
+            reconstruction pipeline. Prior methods first partition a game sequence into
+            individual shot segments using the 2D ball track, and only then attempt
+            reconstruction. However, 2D-based time segmentation collapses under occlusion and
+            varied camera viewpoints, preventing reliable reconstruction. We invert this paradigm
+            by first lifting the entire unsegmented 2D ball track to 3D through a learned lifting
+            network. This 3D trajectory then allows us to reliably perform time segmentation. The
+            learned lifting network also infers the ball's spin, handles unreliable ball
+            detections, and successfully reconstructs the ball trajectory in cases of high
+            occlusion.
+          </p>
+          <p>
+            This lift-first design is necessary, as our pipeline is the only method capable of
+            reconstructing table tennis gameplay from general-view broadcast monocular videos. We
+            demonstrate the dataset's fidelity through two downstream tasks: estimating the
+            racket's pose &amp; velocity at impact, and training a generative model of competitive
+            rallies.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- Pipeline. -->
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">The Lift-First Pipeline</h2>
+        <div class="content has-text-justified">
+          <p>
+            Conventional table tennis reconstruction pipelines first perform 2D-based time
+            segmentation of a point and then reconstruct each segment independently. This
+            segmentation is highly sensitive to occlusions and missing detections, which limits
+            scalability. We instead lift the <i>entire unsegmented point</i> to 3D and perform
+            time segmentation and annotation directly in the 3D domain, where the ball trajectory
+            signal is unambiguous.
+          </p>
+        </div>
+        <div class="content has-text-centered">
+          <img src="./static/images/pipeline.png" style="width: 100%; height: auto;"
+               alt="Overview of the Lift-First Pipeline: preprocessing and feature extraction, full-rally uplifting and positioning, and 4D reconstruction.">
+        </div>
+        <div class="content has-text-justified">
+          <ol class="pipeline-steps">
+            <li><b>Data acquisition and preprocessing.</b> Clip the points of a game from
+              broadcast footage, calibrate the camera from table keypoints, extract 2D ball
+              tracks, and estimate 3D human meshes.</li>
+            <li><b>Full 3D lifting.</b> A transformer-based Full-Sequence Lifting Network
+              predicts dense 3D ball trajectories and per-frame 3D spin vectors for the full
+              point directly from the 2D track. It is trained on a synthetic dataset of
+              3 million full points and generalizes zero-shot to real broadcast video.</li>
+            <li><b>3D-domain annotation.</b> Segments, hit points, bounces, and racket-contact
+              parameters are computed from the reconstructed 3D trajectory.</li>
+            <li><b>Filtering and curation.</b> 2D and 3D consistency checks ensure that all
+              retained trajectories are visually and physically plausible.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+    <!--/ Pipeline. -->
+
+    <!-- Dataset. -->
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">The TT4D Dataset</h2>
+        <div class="content has-text-justified">
+          <p>
+            TT4D is sourced from broadcast table tennis games from 2021 to 2024. It supports
+            general stationary camera poses, singles and doubles gameplay, and video speeds of at
+            least 25 FPS. Each reconstructed point includes camera calibration, a dense 3D ball
+            trajectory, per-frame 3D spin vectors, 3D-derived time segmentation (hits and
+            bounces), racket-contact parameters, and world-aligned 3D human meshes.
+          </p>
+          <table class="table is-striped is-fullwidth stat-table">
+            <thead>
+              <tr><th></th><th>LATTE-MV</th><th><b>TT4D (ours)</b></th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Source games</td><td>1,017</td><td><b>45,946</b></td></tr>
+              <tr><td>Reconstructed points</td><td>23,782</td><td><b>211,534</b></td></tr>
+              <tr><td>Hours of gameplay</td><td>26</td><td><b>146</b></td></tr>
+              <tr><td>Camera viewpoints</td><td>Single fixed pose</td><td><b>General stationary views</b></td></tr>
+              <tr><td>Singles / doubles</td><td>Singles only</td><td><b>Both</b></td></tr>
+              <tr><td>Per-frame 3D spin</td><td>&#10007;</td><td><b>&#10003;</b></td></tr>
+              <tr><td>3D-derived time segmentation</td><td>&#10007;</td><td><b>&#10003;</b></td></tr>
+            </tbody>
+          </table>
+          <p>
+            Because the 3D trajectory is reconstructed independently of human-pose tracking, the
+            pipeline naturally generalizes to doubles matches, and the final winning shot of each
+            point, which is unrecoverable in 2D-based segmentation pipelines, is reliably
+            reconstructed.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Dataset. -->
+
+    <!-- Applications. -->
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Downstream Applications</h2>
+        <div class="content has-text-justified">
+          <p>
+            <b>Racket stroke estimation.</b> Direct monocular tracking of the racket is
+            unreliable due to its high velocity, small size, and frequent occlusions. We instead
+            recover the racket's orientation and velocity at impact by solving an inverse control
+            problem: the stroke parameters are optimized so that the simulated post-impact ball
+            trajectory matches the reconstructed 3D trajectory and bounce timing. Against
+            motion-capture ground truth over 92 recorded strokes, this yields a mean orientation
+            error of 26.4&deg; and a velocity error of 0.58 m/s at an average impact speed of
+            3.72 m/s.
+          </p>
+          <p>
+            <b>Generative rally model.</b> We train a Flow Matching model on competitive
+            gameplay from TT4D. Generated rallies are physically plausible and match the
+            inter-hit time distribution of real play, capturing the tempo and exchange dynamics
+            of professional table tennis.
+          </p>
+          <p>
+            <b>Robot learning.</b> TT4D provides the foundation for imitation learning, where a
+            humanoid robot can learn to emulate professional-level strokes and rallies. We
+            demonstrate this by training a motion tracking policy on retargeted motion from the
+            dataset.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Applications. -->
+
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@inproceedings{rahmanian2026tt4d,
+  author    = {Rahmanian, Nima and Kienzle, Daniel and Gossard, Thomas and Kalaria, Dvij and Lienhart, Rainer and Sastry, S. Shankar},
+  title     = {TT4D: A Pipeline and Dataset for Table Tennis 4D Reconstruction From Monocular Videos},
+  booktitle = {Proceedings of the 34th ACM International Conference on Multimedia (MM '26)},
+  year      = {2026},
+  doi       = {10.1145/3767308.3835475},
+}</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link" href="https://arxiv.org/pdf/2605.01234">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+      <a class="icon-link" href="https://github.com/Nimsi123/tt4d" class="external-link">
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+          <p>
+            This page was built from the <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>
+            project page template.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
