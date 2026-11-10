@@ -1,0 +1,22 @@
+# generic
+.DS_Store
+.cache
+.vscode
+__pycache__
+*.pyc
+wandb
+build/
+*.egg-info
+**/*.so
+
+# pipeline data
+pipeline_outputs
+pipeline_outputs_test
+
+# models that are downloaded separately (see README)
+src/assets
+src/ball_tracker/finetune_10
+src/ball_uplifting/model
+src/human_pose_tracker/4DHumans/data/*.pkl
+src/human_pose_tracker/4DHumans/build
+src/human_pose_tracker/4DHumans/dist

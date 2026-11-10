@@ -1,0 +1,31 @@
+# ruff lint + format configuration. Vendored code (hmr2, tt3d) and notebooks are left as they are.
+line-length = 120
+target-version = "py312"
+extend-exclude = [
+    "*.ipynb",
+    "src/human_pose_tracker/4DHumans/hmr2",
+    "src/human_pose_tracker/4DHumans/PHALP.py",
+    "src/human_pose_tracker/4DHumans/visualizer.py",
+    "src/calibration/tt3d",
+]
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",  # the formatter wraps what it can; long strings and comments stay
+    "B905",  # zip(strict=...) adds noise without changing any call here
+    "SIM115",  # open() without a context manager in the tracker code; harmless, left as written
+]
+
+[lint.per-file-ignores]
+"src/ttg/types/tt4d.py" = ["B904", "SIM102", "F821"]  # the TT4D class is kept as written
+"src/rtt_utils/physics_constants.py" = ["E741"]  # I is the moment of inertia
+"src/rtt_utils/racket_model/constants.py" = ["E741"]
+
+[lint.isort]
+known-first-party = [
+    "rtt_utils", "ttg", "rally_clipper", "ball_uplifting", "video_thinning", "visualization",
+]
+
+[format]
+quote-style = "preserve"
