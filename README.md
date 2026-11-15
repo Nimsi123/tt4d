@@ -16,7 +16,21 @@ Reconstruct each rally with the pipeline and explore the TT4D dataset in the int
 
 ## Setup
 
-Linux with an NVIDIA GPU. One conda env runs every stage and the viewer:
+### Viewer only
+
+Linux/macOS with conda. No GPU or SMPL model required:
+
+```bash
+git clone https://github.com/Nimsi123/tt4d.git && cd tt4d
+conda env create -f viewer.yml
+conda activate tt4d-viewer
+```
+
+Skip `setup_tt4d.sh` and the model downloads below. See [Dataset](#dataset) and [Visualizing a clip](#visualizing-a-clip) next.
+
+### Reconstruction environment
+
+Linux with an NVIDIA GPU:
 
 ```bash
 git clone https://github.com/Nimsi123/tt4d.git && cd tt4d
@@ -28,13 +42,13 @@ bash setup_tt4d.sh
 `setup_tt4d.sh` installs this repo (`pip install -e .`), patches chumpy, and installs detectron2, the 4DHumans
 neural renderer, PHALP and [SAM3](https://github.com/facebookresearch/sam3) (commit `99d02f2`) from GitHub.
 
-### Models
+### Reconstruction models
 
 Not included in the repository:
 
 | Put it at | Used by | Source |
 |---|---|---|
-| `src/assets/smpl/SMPL_MALE.pkl` | stages 10–11, viewer | [SMPL](https://smpl.is.tue.mpg.de): `basicmodel_m_lbs_10_207_0_v1.*.pkl`, renamed |
+| `src/assets/smpl/SMPL_MALE.pkl` | stages 10–11, optional viewer meshes | [SMPL](https://smpl.is.tue.mpg.de): `basicmodel_m_lbs_10_207_0_v1.*.pkl`, renamed |
 | `src/human_pose_tracker/4DHumans/data/basicModel_neutral_lbs_10_207_0_v1.0.0.pkl` | stage 8 | [SMPLify](https://smplify.is.tue.mpg.de) |
 | `src/ball_tracker/finetune_10/TrackNet_best.pt` | stage 5 | [download](https://people.eecs.berkeley.edu/~nimsi/tt4d/TrackNet_best.pt) |
 | `src/ball_uplifting/model/model_empiricalAugmentation_spincorrection.pt` | stage 11 | [download](https://people.eecs.berkeley.edu/~nimsi/tt4d/model_empiricalAugmentation_spincorrection.pt) |
@@ -51,7 +65,7 @@ table segmentation weights are in the repository. The rest download on first run
 `~/.cache/torch/hub` and `~/.paddleocr`), 4DHumans and PHALP (stage 8, about 5 GB in `~/.cache/4DHumans` and
 `~/.cache/phalp`) and SAM3 (stage 12, about 3 GB in `~/.cache/huggingface`).
 
-To only view the dataset you need the env and `SMPL_MALE.pkl`.
+To show body meshes, use the reconstruction environment, download `SMPL_MALE.pkl`, and add `--meshes` to the viewer command. Mesh rendering also supports CPU execution.
 
 ## Dataset
 
@@ -81,7 +95,7 @@ python src/visualization/viser_visualization.py --tt4d-file pipeline_outputs/tt4
 
 Open http://localhost:8080 (`--port` to change it; on a remote machine, first run
 `ssh -N -L 8080:localhost:8080 <user>@<server>`). The
-viewer loops the rally: table, ball with its trail, and each player as an SMPL mesh and skeleton. The broadcast
+viewer loops the rally: table, ball with its trail, and each player as a skeleton. Add `--meshes` for SMPL body meshes. The broadcast
 video and camera are added when the clip folder recorded in the pickle exists on your machine, i.e. for clips you
 ran through the pipeline yourself. `--gameplay-dir pipeline_outputs/shared/batch_clipped_long_<i>/<clip>` loads a
 clip folder directly; `--lite` skips the video. The `overflow encountered in cast` and "SMPL model, with only 10 shape
@@ -100,7 +114,7 @@ tt4d = pickle.load(open("<clip>_tt4d_processed.pkl", "rb"))
   `transl` (3,) (SMPL, rotation matrices, world frame). `skeletons`: per player (T, 21, 3) joints.
 - `camera_matrix`, `rvecs`, `tvecs`: calibration. World frame: origin at the table centre, z up.
 - `segments`, `hit_indices`: rally structure. `fps`, `dropped_frames`: frame timing after removing duplicated frames.
-- `label`: singles or doubles. Doubles clips have four entries in `humans` but two in `skeletons`.
+- `label`: singles or doubles. Doubles samples store four player skeletons in `_skeletons`; the `skeletons` property exposes only two.
 
 ## Running the pipeline
 

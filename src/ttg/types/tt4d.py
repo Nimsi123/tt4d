@@ -7,12 +7,9 @@ import os
 import cv2
 import numpy as np
 import scipy
-import torch
 from scipy.spatial.transform import Rotation as R
 
 # Local/application imports
-from rtt_utils.ball import second_clipping_refinement
-from rtt_utils.genmo import process_genmo_player
 from rtt_utils.humans import get_four_players, get_left_right_players, load_task, thin_frames, thinned_to_video_index
 from rtt_utils.paths import is_doubles, is_doubles_humans, is_singles, is_singles_humans
 from rtt_utils.skeleton import (
@@ -21,11 +18,6 @@ from rtt_utils.skeleton import (
     geometric_adjustments_smpl_to_motive,
     select_target21_from_smpl24,
     smpl_to_smplh,
-)
-from rtt_utils.smpl import (
-    load_smpl_model,
-    smpl_dicts_to_rotmats,
-    smpl_forward_pos,
 )
 from ttg.types.ttg import TTG
 
@@ -385,6 +377,8 @@ class TT4D(TTG):
         return self._smplh_humans
 
     def hit_point_identification(self):
+        from rtt_utils.ball import second_clipping_refinement
+
         if self.segments is not None:
             return
 
@@ -492,6 +486,8 @@ class TT4D(TTG):
         wrist is closer to the ball. Offsets are computed at hit frames, thresholded,
         and interpolated smoothly across all frames per player.
         """
+        from rtt_utils.smpl import smpl_dicts_to_rotmats, smpl_forward_pos
+
         if smpl_model is None:
             smpl_model = self._get_smpl()
 
@@ -597,6 +593,9 @@ class TT4D(TTG):
     @classmethod
     def _get_smpl(cls, device=None):
         """Load SMPL model using smplx library."""
+        import torch
+        from rtt_utils.smpl import load_smpl_model
+
         if device is None:
             device = "cuda:0" if torch.cuda.is_available() else "cpu"
         smpl_model = load_smpl_model(device=device)
@@ -660,6 +659,8 @@ class TT4D(TTG):
         Returns:
             TT4D object (may be a failed instance if data is missing or invalid)
         """
+        import torch
+        from rtt_utils.genmo import process_genmo_player
 
         def _genmo_path(subdir):
             return os.path.join(gameplay_dir, "human_pose_tracker_only_tracknet", subdir)
@@ -803,6 +804,8 @@ class TT4D(TTG):
         Returns:
             TT4D object (may be a failed instance if data is missing or invalid)
         """
+        import torch
+        from rtt_utils.genmo import process_genmo_player
 
         def _genmo_path(subdir):
             return os.path.join(gameplay_dir, "human_pose_tracker_only_tracknet", subdir)
@@ -955,6 +958,8 @@ class TT4D(TTG):
         Returns:
             TT4D object (may be a failed instance if data is missing or invalid)
         """
+        from rtt_utils.smpl import smpl_dicts_to_rotmats, smpl_forward_pos
+
         if smpl_model is None:
             smpl_model = cls._get_smpl()
 
@@ -1106,6 +1111,8 @@ class TT4D(TTG):
         Returns:
             TT4D object (may be a failed instance if data is missing or invalid)
         """
+        from rtt_utils.smpl import smpl_dicts_to_rotmats, smpl_forward_pos
+
         if smpl_model is None:
             smpl_model = cls._get_smpl()
 

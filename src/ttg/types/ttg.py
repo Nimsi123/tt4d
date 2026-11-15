@@ -5,8 +5,6 @@ import pickle
 # Third-party imports
 import numpy as np
 
-from rtt_utils.ball import clean_ball_segment, detect_bounces_in_segment, interpolate_nans, inverse_racket_estimation
-
 # Local/application imports
 from rtt_utils.calibration import compute_table_diagonal_pixels
 from rtt_utils.constants import TABLE_LENGTH, TABLE_WIDTH
@@ -14,6 +12,8 @@ from rtt_utils.constants import TABLE_LENGTH, TABLE_WIDTH
 
 class TTG:
     def __init__(self, ball_3d, skeletons, fps):
+        from rtt_utils.ball import interpolate_nans
+
         self.ball_3d = ball_3d
 
         for s in skeletons:
@@ -162,6 +162,8 @@ class TTG:
         self.exchanges = [(s1[0], s2[1]) for s1, s2 in zip(self.segments[:-1], self.segments[1:])]
 
     def annotate_ode_fit(self):
+        from rtt_utils.ball import clean_ball_segment
+
         self.initial_ball_states = []
         self.ode_fit_errors = []
         self.interpolated_ball_3d = np.full_like(self.ball_3d, np.nan)
@@ -172,6 +174,8 @@ class TTG:
             self.ode_fit_errors.append(fit_error)
 
     def determine_validity(self, MAX_RMSE_THRESHOLD, MAX_NEURAL_REPROJECTION_THRESHOLD, stats=False):
+        from rtt_utils.ball import detect_bounces_in_segment
+
         if self.invalid:
             if not self.failure_reason:
                 self.failure_reason = "Failure by initialization."
@@ -348,6 +352,8 @@ class TTG:
         # if ...:
         #     print("Racket annotations have already been added!")
         #     return
+
+        from rtt_utils.ball import inverse_racket_estimation
 
         N = self.time_s.shape[0]
         est_paddle_pos_xyz_m = np.full((N, 3), np.nan, float)

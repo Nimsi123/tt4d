@@ -48,13 +48,15 @@ class Config:
     the video is read from the pickle's own gameplay_dir when that folder still exists."""
     lite: bool = False
     """Skip loading the video (and the camera image plane)."""
+    meshes: bool = False
+    """Show SMPL meshes; requires the reconstruction environment and SMPL model."""
     pose_source: str = "4dhumans"
     """Which human poses to load: "genmo" (singles only) or "4dhumans"."""
     port: int = 8080
     """Port the viewer is served on."""
 
 
-def load_tt4d(gameplay_dir: str, tt4d_file: str = "", lite: bool = False, pose_source: str = "4dhumans"):
+def load_tt4d(gameplay_dir: str, tt4d_file: str = "", lite: bool = False, pose_source: str = "4dhumans", meshes: bool = False):
     """Load a clip's TT4D and unpack what the scene needs: ball track, players, camera, video frames, fps."""
     if tt4d_file:
         with open(tt4d_file, "rb") as f:
@@ -62,10 +64,13 @@ def load_tt4d(gameplay_dir: str, tt4d_file: str = "", lite: bool = False, pose_s
         gameplay_dir = getattr(tt4d, "gameplay_dir", None)
     else:
         tt4d = TT4D.from_gameplay_dir(gameplay_dir, None, pose_source=pose_source)
-        if hasattr(tt4d, "handedness") and tt4d.handedness is not None:
+        if meshes and getattr(tt4d, "handedness", None) is not None:
             tt4d.translation_fix_wrist_ball()
 
         print(tt4d.failure_reason)
+
+    if getattr(tt4d, "invalid", False) or tt4d.ball_3d is None or len(tt4d.ball_3d) == 0:
+        raise ValueError(f"Cannot visualize clip: {getattr(tt4d, 'failure_reason', None) or 'no ball frames'}")
 
     video_file = None
     if not lite and gameplay_dir:
@@ -80,13 +85,22 @@ def load_tt4d(gameplay_dir: str, tt4d_file: str = "", lite: bool = False, pose_s
 
     ball_positions = np.hstack((vis, tt4d.ball_3d))
 
+    if not getattr(tt4d, "_skeletons", None) or any(len(s) == 0 for s in tt4d._skeletons):
+        raise ValueError("Cannot visualize clip: no skeleton frames.")
+
+    player_smpls = []
     if getattr(tt4d, "label", None) == "doubles":
         # tt4d.humans / tt4d.skeletons only expose the first two players; show all four
-        player_smpls = [np.array(h) for h in tt4d._humans]
+        if meshes:
+            player_smpls = [np.array(h) for h in tt4d._humans]
         skeletons = tt4d._skeletons
     else:
-        player_smpls = [np.array(tt4d.humans[0]), np.array(tt4d.humans[1])]
+        if meshes:
+            player_smpls = [np.array(tt4d.humans[0]), np.array(tt4d.humans[1])]
         skeletons = tt4d.skeletons  # list of 2 arrays, each (T, 21, 3)
+
+    if skeletons is None:
+        raise ValueError("Cannot visualize clip: no skeleton frames.")
 
     # Camera pose → Viser
     rvec = np.asarray(tt4d.rvecs[0]).reshape(3)
@@ -131,6 +145,18 @@ def load_tt4d(gameplay_dir: str, tt4d_file: str = "", lite: bool = False, pose_s
 
 def main(cfg: Config):
     """Serve the viser scene for one clip and animate it until interrupted."""
+    smpl_model = None
+    if cfg.meshes:
+        try:
+            from rtt_utils.smpl import load_smpl_model
+
+            smpl_model = load_smpl_model()
+        except (ImportError, FileNotFoundError, AssertionError) as exc:
+            raise RuntimeError(
+                "--meshes requires the reconstruction environment and src/assets/smpl/SMPL_MALE.pkl. "
+                "See README Setup, or omit --meshes for skeleton visualization."
+            ) from exc
+
     (
         ball_positions,
         player_smpls,
@@ -142,7 +168,7 @@ def main(cfg: Config):
         num_frames,
         skeletons,
         handedness,
-    ) = load_tt4d(cfg.gameplay_dir, cfg.tt4d_file, cfg.lite, cfg.pose_source)
+    ) = load_tt4d(cfg.gameplay_dir, cfg.tt4d_file, cfg.lite, cfg.pose_source, cfg.meshes)
 
     server = viser.ViserServer(port=cfg.port)
     server.scene.set_up_direction("+z")
@@ -194,12 +220,13 @@ def main(cfg: Config):
             subsample=1,
             max_keep=1,
             poses_are_rot_mats=True,
+            smpl_model=smpl_model,
         )
 
         for pid in range(len(player_smpls)):
             fc = foot_contact[pid] if isinstance(foot_contact, list) else foot_contact
-            add_foot_contact(server, fc, gui_timestep, player_smpls[pid], prefix=f"p{pid}")
-            add_foot_vertex_spheres(server, gui_timestep, player_smpls[pid], prefix=f"p{pid}")
+            add_foot_contact(server, fc, gui_timestep, player_smpls[pid], prefix=f"p{pid}", smpl_model=smpl_model)
+            add_foot_vertex_spheres(server, gui_timestep, player_smpls[pid], prefix=f"p{pid}", smpl_model=smpl_model)
 
         if handedness is not None:
             for pid in range(len(player_smpls)):
@@ -209,6 +236,7 @@ def main(cfg: Config):
                     gui_timestep,
                     player_smpls[pid],
                     prefix=f"p{pid}/handedness",
+                    smpl_model=smpl_model,
                 )
 
     # Skeleton visualization (21-joint BVH / cory337 skeletons)

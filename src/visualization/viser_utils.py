@@ -6,13 +6,11 @@ import math
 
 import cv2
 import numpy as np
-import torch
 import viser
 from scipy.spatial.transform import Rotation as R
 
 from rtt_utils.constants import NET_HALF_LENGTH, NET_HEIGHT, TABLE_HALF_LENGTH, TABLE_HALF_WIDTH, TABLE_HEIGHT
 from rtt_utils.skeleton import N_BONES_21
-from rtt_utils.smpl import get_smpl_sole_indices, load_smpl_model, smpl_forward_chunked
 
 # Default player colors for SMPL mesh visualization
 PLAYER_COLORS = [
@@ -317,6 +315,9 @@ def add_smpl_animation_ghosts(
         scale_to_mm: If True, multiply vertices by 1000*S to convert m -> scene units
         player_colors: Optional list of RGB tuples (0-1 range) for each player
     """
+    import torch
+    from rtt_utils.smpl import load_smpl_model
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Load model if not provided
@@ -423,6 +424,9 @@ def add_foot_contact(
     foot_contact: (T, 2) — col 0 = left foot, col 1 = right foot.
         0 → red (no contact), 1 → green (contact), else → hidden.
     """
+    import torch
+    from rtt_utils.smpl import load_smpl_model, smpl_forward_chunked
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     smpl = smpl_model or load_smpl_model(model_path=model_path, gender=gender, device=str(device))
 
@@ -480,6 +484,9 @@ def add_handedness_marker(
         handedness: "left" or "right".
         Other args mirror add_foot_contact.
     """
+    import torch
+    from rtt_utils.smpl import load_smpl_model, smpl_forward_chunked
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     smpl = smpl_model or load_smpl_model(model_path=model_path, gender=gender, device=str(device))
 
@@ -521,9 +528,12 @@ def add_foot_vertex_spheres(
     prefix: str = "foot_verts",
 ):
     """Draw the sole vertices of both feet (blue left, yellow right) as small spheres, updated per frame."""
+    import torch
+    from rtt_utils.smpl import get_smpl_sole_indices, load_smpl_model, smpl_forward_chunked
+
     SOLE_INDICES = get_smpl_sole_indices()
-    device = "cuda"
-    smpl_model = load_smpl_model(model_path=None, gender="male", device=str(device))
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    smpl_model = smpl_model or load_smpl_model(model_path=None, gender="male", device=str(device))
 
     T = len(player_smpl)
     N = SOLE_INDICES.shape[0] // 2
