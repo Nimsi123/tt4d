@@ -1,9 +1,18 @@
-# TT4D: A Pipeline and Dataset for Table Tennis 4D Reconstruction From Monocular Videos
+# TT4D
 
-[Project page](https://nimsi123.github.io/tt4d/) · [arXiv](https://arxiv.org/abs/2605.01234) · ACM Multimedia 2026
+**A Pipeline and Dataset for Table Tennis 4D Reconstruction From Monocular Videos**
 
-This repository has the pipeline that turns broadcast table tennis videos into per-rally reconstructions (3D ball
-trajectory and spin, SMPL meshes of the players, camera calibration) and a viewer for the resulting TT4D clips.
+🌐 [**Project page**](https://nimsi123.github.io/tt4d/) · 📄 [**arXiv**](https://arxiv.org/abs/2605.01234) · 🎓 **ACM Multimedia 2026**
+
+From broadcast table tennis videos to 3D ball trajectories and spin, player meshes, and camera calibration.
+Reconstruct each rally with the pipeline and explore the TT4D dataset in the interactive viewer.
+
+<p align="center">
+  <img src="docs/static/videos/double_game.gif" alt="Doubles table tennis reconstruction" width="45%">
+  <img src="docs/static/videos/single_game.gif" alt="Singles table tennis reconstruction" width="45%">
+</p>
+
+*Doubles and singles rally reconstructions.*
 
 ## Setup
 
@@ -172,6 +181,12 @@ cd src && python -m ttg.infra.create_tt4d_dataset
 ```
 
 To render the 2D ball track onto the video after stage 5: `cd src/ball_tracker && python overlay_ball_on_videos.py --num-resources 8`.
+
+## License
+
+Except where otherwise noted, this repository is licensed under the
+[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)](LICENSE).
+Third-party code and assets remain subject to their respective licenses.
 
 ## Third-party code
 
