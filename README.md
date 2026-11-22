@@ -109,13 +109,6 @@ import pickle
 tt4d = pickle.load(open("<clip>_tt4d_processed.pkl", "rb"))
 ```
 
-- `ball_2d` (T, 4): frame, visibility, x, y from the 2D tracker. `ball_3d`, `spin_3d` (T, 3): lifted ball and spin.
-- `humans`: per player, a list of T dicts with `global_orient` (1, 3, 3), `body_pose` (23, 3, 3), `betas` (10,),
-  `transl` (3,) (SMPL, rotation matrices, world frame). `skeletons`: per player (T, 21, 3) joints.
-- `camera_matrix`, `rvecs`, `tvecs`: calibration. World frame: origin at the table centre, z up.
-- `segments`, `hit_indices`: rally structure. `fps`, `dropped_frames`: frame timing after removing duplicated frames.
-- `label`: singles or doubles. Doubles samples store four player skeletons in `_skeletons`; the `skeletons` property exposes only two.
-
 ## Running the pipeline
 
 ### Small example
@@ -174,18 +167,6 @@ Times are for one doubles match video (28 clips) on a shared machine with 4 GPUs
 | 10 | Partial reconstruction | `mono_view_recons/runners` | `python partial_recons.py --resource-ids 0 --workers-per-resource 2` | `nima_recons/<clip>_tt4d.pkl` | 15 s |
 | 11 | Ball lifting, final TT4D | `ball_uplifting` | `python -m uplifting_multisequence.main --resource-ids 0 --workers-per-resource 2` | `nima_recons/<clip>_tt4d_processed.pkl` | 6 min |
 | 12 | Racket segmentation (SAM3) | `racket_tracker` | `python main_sam3.py --resource-ids 0 1` | `racket_tracker_sam3/` | 1 min/clip |
-
-Each stage skips clips it has already finished, so a stage can be re-run after a crash. Clips dropped at stage 4
-(moving camera) or stage 6 (no ball play) get no pickle; clips that reach stage 10 are always saved, and the ones that
-fail have `invalid` and `failure_reason` set.
-
-Dependencies to be aware of:
-- Stage 5 only runs on clips whose calibration succeeded.
-- Stage 10 only runs on clips where the scoreboard label (stage 3) and the humans label (stage 9) agree, and it uses
-  stage 7's output.
-- Stage 12 runs on singles clips only and is optional: the 4DHumans reconstructions do not use it. Its racket masks
-  decide each player's handedness when loading GENMO poses (`TT4D.from_gameplay_dir(..., pose_source="genmo")`);
-  GENMO itself is not part of this repository.
 
 To collect every valid clip under `pipeline_outputs/shared/` into `pipeline_outputs/tt4d_pickles/` (this replaces
 that folder after asking, so move a downloaded dataset elsewhere first):
