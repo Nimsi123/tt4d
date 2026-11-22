@@ -2,8 +2,6 @@
 
 import numpy as np
 
-from rtt_utils.smpl import load_smpl_model, smpl_dicts_to_rotmats, smpl_forward_pos
-
 # --------------------------------------------
 # 21-joint Motive/BVH skeleton (ORDERED_BVH_21)
 # --------------------------------------------
@@ -273,6 +271,8 @@ def smpl24_to_smplh52(pos24: np.ndarray) -> np.ndarray:
 
 def smpl_to_smplh(smpl_seq, smpl_model=None):
     """Run SMPL on a sequence of parameter dicts and return (T, 52, 3) SMPLH joint positions for retargeting."""
+    from rtt_utils.smpl import load_smpl_model, smpl_dicts_to_rotmats, smpl_forward_pos
+
     if smpl_model is None:
         smpl_model = load_smpl_model()
 
